@@ -1,7 +1,5 @@
-import { useRouter } from "next/navigation";
 import { Metadata } from "next";
-import NoteForm from "@/components/NoteForm/NoteForm";
-import css from "@/app/notes/action/create/CreateNote.module.css";
+import CreateNoteClient from "./CreateNote.client";
 
 export const metadata: Metadata = {
   title: " Create Note",
@@ -22,22 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function CreateNote() {
-  const router = useRouter();
-
-  const handleSuccess = () => {
-    router.push("/notes");
-  };
-  const handleCancel = () => {
-    router.back();
-  };
-
-  return (
-    <main className={css.main}>
-      <div className={css.container}>
-        <h1 className={css.title}>Create note</h1>
-        {/* NoteForm component */}
-        <NoteForm onSuccess={handleSuccess} onCancel={handleCancel} />
-      </div>
-    </main>
-  );
+  return <CreateNoteClient />;
 }
