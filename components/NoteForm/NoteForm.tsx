@@ -1,31 +1,29 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "@/lib/api/notes";
+import { useNoteStore } from "@/lib/store/noteStore";
 import type { NewNote } from "@/types/note";
 import css from "./NoteForm.module.css";
 
 interface NoteFormProps {
-  initialValues?: NewNote;
-  onSuccess: () => void;
-  onCancel: () => void;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export default function NoteForm({
-  initialValues = { title: "", content: "", tag: "Todo" },
-  onSuccess,
-  onCancel,
-}: NoteFormProps) {
+export default function NoteForm({ onSuccess, onCancel }: NoteFormProps) {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<NewNote>(initialValues);
 
-  // Мутація на створення нотатки
+  const { draft, setDraft, clearDraft } = useNoteStore();
+
   const createMutation = useMutation({
     mutationFn: (newNote: NewNote) => createNote(newNote),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      onSuccess(); // Закриваємо модалку після успіху
+
+      clearDraft();
+      if (onSuccess) onSuccess();
     },
   });
 
@@ -33,14 +31,12 @@ export default function NoteForm({
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    setDraft({ [name]: value });
   };
 
   const handleFormAction = () => {
-    createMutation.mutate(formData);
+    createMutation.mutate(draft);
   };
 
   return (
@@ -51,7 +47,7 @@ export default function NoteForm({
           id="title"
           type="text"
           name="title"
-          value={formData.title}
+          value={draft.title}
           onChange={handleChange}
           required
           className={css.input}
@@ -64,7 +60,7 @@ export default function NoteForm({
           id="content"
           name="content"
           rows={8}
-          value={formData.content}
+          value={draft.content}
           onChange={handleChange}
           className={css.textarea}
         />
@@ -75,7 +71,7 @@ export default function NoteForm({
         <select
           id="tag"
           name="tag"
-          value={formData.tag}
+          value={draft.tag}
           onChange={handleChange}
           className={css.select}
         >
